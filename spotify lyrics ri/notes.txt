@@ -1,0 +1,11 @@
+Web spotify. While playing Ожоги бульвара a response to https://spclient.wg.spotify.com/color-lyrics/v2/track/4WgaV9uCevvqvwW8cQjFho/image/https%3A%2F%2Fi.scdn.co%2Fimage%2Fab67616d0000b273001e2a49e2ab67039d634495?format=json&vocalRemoval=false&market=from_token
+contained actual JSONed lyrics.
+
+Analyse requests to spclient.wg.spotify.com/color-lyrics. It is responsible for lyrics.
+
+https://spclient.wg.spotify.com/color-lyrics/v2/track/<Track Spotify ID>/image/<Track cover URL (%-encoded ofc)>?format=<Format (e.g. "json")&vocalRemoval=false&market=from_token
+Required headers:
+1. "Authorization" must always be set to "Bearer".
+2. "Client-Token" must contain auth token of the client.
+3. "App-Platform" supposedly contains code name telling whether web player, desktop client, mobile app, etc. was used to send the requests. Didn't find anything to work here except "WebPlayer".
+Other headers haven't been observed to be mandatory.
