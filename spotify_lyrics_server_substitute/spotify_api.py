@@ -1,3 +1,4 @@
+from collections import namedtuple
 import json
 from crypt import methods
 from urllib.request import urlopen, Request
@@ -7,6 +8,9 @@ import base64
 
 SPOTIFY_URL_TOKEN = 'https://accounts.spotify.com/api/token'
 SPOTIFY_URL_GET_TRACK = 'https://api.spotify.com/v1/tracks/%s'
+
+
+NameArtists = namedtuple('NameArtists', 'name artists')
 
 
 class SpotifyAPI:
@@ -30,6 +34,10 @@ class SpotifyAPI:
         req.add_header('Authorization', self.access_token)
         res = urlopen(req)
         return json.loads(res.read())
+
+    def get_name_artists_by_id(self, track_id: str):        
+        json = self.spotify.get_track_by_id(track_id)
+        return NameArtists(json['name'], [i['name'] for i in json['artists']])
 
 
     

@@ -10,8 +10,6 @@ def lyrics_request_handler_class_factory(spotify_api: str): # Used to DI things 
     return type('LyricsRequestHandler', (_LyricsRequestHandlerBase,), {"spotify_api": spotify_api})
 
 class _LyricsRequestHandlerBase(BaseHTTPRequestHandler):
-    spotify_api: SpotifyAPI
-
     def get_track_id(self):
         try:
             return LYRICS_URL_TRACK_PART.search(self.path)[0]
