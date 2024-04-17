@@ -9,14 +9,19 @@ from urllib.request import urlopen, Request
 from urllib.parse import urlencode, quote
 from bs4 import BeautifulSoup
 import json
-import sys
-print(sys.path)
 
 GENIUS_URL_SEARCH = 'https://api.genius.com/search?q=%s'
 LYRICS_DIV_CLASS_PATTERN = re.compile("^lyrics$|Lyrics__Container")
-
+NON_SANG_PATTERN = re.compile("\[.*?\]")
+# SPOTIFY_READY_LYRICS = re.compile(...)  # TODO: Write the pattern. See the docstring, `get_lyrics`
+'''
+Verifies whether the lyrics look like they should in Spotify. In Spotify all lyrics are concise. They contain only words and numbers, special symbols are 
+used only for punctuation imposed by the human language.  
+'''
 
 # TODO: Add exception handling and error checking
+
+
 class GeniusLyricsBackend(LyricsBackendBase):
     def __init__(self, genius_client_token: str, spotify: SpotifyAPI, *, number_take_matches=10) -> None:
         super().__init__()
@@ -54,16 +59,24 @@ class GeniusLyricsBackend(LyricsBackendBase):
             html = BeautifulSoup(a := res.read(), "html.parser")
             for i in html('script'):
                 i.extract()
-            return '\n'.join(i.get_text('\n') for i in html.find_all('div', class_=LYRICS_DIV_CLASS_PATTERN)).strip(' \n')
+            divs = html.find_all('div', class_=LYRICS_DIV_CLASS_PATTERN)
+            for i in divs:
+                for br in i.find_all('br'):
+                    br.replace_with('\n')
 
-    def get_lyrics(self, spotify_track_id: str):
+            return '\n'.join(i.get_text() for i in divs).strip(' \n')
+
+    def get_lyrics(self, spotify_track_id: str, remove_non_sang_text=False):
+        ''' Returns lyrics from Genius for track with Spotify ID `spotify_track_id`. If `remove_non_sang_text` is true, removes genius thingies in square 
+         brackets. '''
         name_artists = self.spotify.get_name_artists_by_id(spotify_track_id)
         hits = self.search_song(name_artists.name + ' - ' + ', '.join(name_artists.artists))['response']['hits']
         genius_track_url = self.pick_best_hit(hits, name_artists)['result']['url']
-        return self.scrape_lyrics_from_page(genius_track_url)
 
+        lyrics = self.scrape_lyrics_from_page(genius_track_url).strip(' \n')
+        if remove_non_sang_text:  # TODO: Improve the lyrics processing algorithm
+            lyrics = NON_SANG_PATTERN.sub('', lyrics)
+            lyrics = '\n'.join(i for i in lyrics.split('\n') if i)  # Remove excessive newlines
+        return lyrics
 
-gb = GeniusLyricsBackend('NWBB0u3PjuUU_6HXnuoDyFXM0S-YnqRAgBSgiVEqGxwm-ppdagGckScgkM1mCiwd',
-                         SpotifyAPI('a32f6d8ffc7f4384bf0d5d11126d7456', '5244235d70a84bcbb0744704fc78dd4b'))
-
-print(gb.get_lyrics('33i3xxHB4YSYGYbtJrwwO8'))
+# TODO: REMOVE TEST API CLIENTS. THEY HAVE SECRET KEYS EXPOSED ON GITHUB
