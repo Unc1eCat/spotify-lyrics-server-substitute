@@ -2,7 +2,7 @@
 from collections import namedtuple
 from typing import Iterable
 
-from src.spotify_api import LyricsLine
+from spotify_lyrics_server_substitute.spotify_api import LyricsLine
 
 # TODO: Incorporate ABC. For now its just a reference on what to implement in the lyrics backend classes
 class LyricsBackendBase:

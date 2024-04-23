@@ -7,9 +7,6 @@ from urllib.request import urlopen, Request
 from urllib.parse import urlencode, parse_qs
 import base64
 
-from spotify_lyrics_server_substitute.lyrics_backends.lyrics_backend import LyricsLine
-
-
 SPOTIFY_URL_TOKEN = 'https://accounts.spotify.com/api/token'
 SPOTIFY_URL_GET_TRACK = 'https://api.spotify.com/v1/tracks/%s'
 
@@ -56,10 +53,9 @@ def _convert_color(color: Color) -> int:
 def make_response_body(lyrics: Iterable[LyricsLine], language: str, is_rtl_language: bool, background_color: Color, unhighlighted_text_color: Color, highlighted_text_color: Color):
     ''' Creates a valid body for the response that will be sent to the Spotify client by the substituting server. Takes in lyrics and some info and outputs 
     a JSON dict that contains this lyrics and info and is a valid response body. '''
-    # TODO: Write it. Needs some RIing of Spotify client-server communication.
     lines = [
         {
-            'startTimeMs': i.timeMs,
+            'startTimeMs': i.time_ms,
             'words': i.words,
             'syllables': [],
             'endTimeMs': '0'
@@ -75,8 +71,8 @@ def make_response_body(lyrics: Iterable[LyricsLine], language: str, is_rtl_langu
             'syncLyricsUri': '',
             'isDenseTypeface': False,
             'alternatives': [],
-            'language': ...,
-            'isRtlLanguage': False,
+            'language': language,
+            'isRtlLanguage': is_rtl_language,
             'fullscreenAction': 'FULLSCREEN_LYRICS',
             'showUpsell': False,
             'capStatus': 'NONE',
@@ -84,8 +80,9 @@ def make_response_body(lyrics: Iterable[LyricsLine], language: str, is_rtl_langu
         },
         'colors': {
             'background': _convert_color(background_color),
-            'text': _convert_color(background_color),
-            'highlightText': _convert_color(background_color)
+            'text': _convert_color(unhighlighted_text_color),
+            'highlightText': _convert_color(highlighted_text_color)
         },
         'hasVocalsRemoval': False
     }
+    return json

@@ -1,6 +1,6 @@
 import re
 from src.lyrics_backends.lyrics_backend import LyricsBackendBase
-from spotify_lyrics_server_substitute.spotify_api import NameArtists, SpotifyAPI
+from spotify_lyrics_server_substitute.spotify_api import LyricsLine, NameArtists, SpotifyAPI
 from functools import partial
 from itertools import chain, combinations, product
 from urllib.error import HTTPError
@@ -77,6 +77,6 @@ class GeniusLyricsBackend(LyricsBackendBase):
         if remove_non_sang_text:  # TODO: Improve the lyrics processing algorithm
             lyrics = NON_SANG_PATTERN.sub('', lyrics)
             lyrics = '\n'.join(i for i in lyrics.split('\n') if i)  # Remove excessive newlines
-        return lyrics
+        return [LyricsLine(i, 0) for i in lyrics.split('\n')]
 
 # TODO: REMOVE TEST API CLIENTS. THEY HAVE SECRET KEYS EXPOSED ON GITHUB
