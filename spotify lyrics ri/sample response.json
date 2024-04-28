@@ -1,0 +1,133 @@
+{
+    "lyrics": {
+        "syncType": "LINE_SYNCED",
+        "lines": [
+            {
+                "startTimeMs": "60480",
+                "words": "Welcome to our fortress tall",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "63380",
+                "words": "I\u0027ll take some time to show you around",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "66100",
+                "words": "Impossible to break these walls",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "69000",
+                "words": "For, you see, the steel is much too strong",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "72270",
+                "words": "Computer banks to rule the world",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "75530",
+                "words": "Instruments to sight the stars",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "78160",
+                "words": "Possibly I\u0027ve seen too much",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "81220",
+                "words": "Hangar 18, I know too much",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "85170",
+                "words": "♪",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "120550",
+                "words": "Foreign life forms, inventory",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "123450",
+                "words": "Suspended state of cryogenics",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "126280",
+                "words": "Selective amnesia\u0027s the story",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "129570",
+                "words": "Believed, foretold, but who would suspect?",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "132260",
+                "words": "The military intelligence",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "135370",
+                "words": "Two words combined that can\u0027t make sense",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "138360",
+                "words": "Possibly I\u0027ve seen too much",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "141420",
+                "words": "Hangar 18, I know too much",
+                "syllables": [],
+                "endTimeMs": "0"
+            },
+            {
+                "startTimeMs": "143260",
+                "words": "",
+                "syllables": [],
+                "endTimeMs": "0"
+            }
+        ],
+        "provider": "MusixMatch",
+        "providerLyricsId": "177592",
+        "providerDisplayName": "Musixmatch",
+        "syncLyricsUri": "",
+        "isDenseTypeface": false,
+        "alternatives": [],
+        "language": "en",
+        "isRtlLanguage": false,
+        "fullscreenAction": "FULLSCREEN_LYRICS",
+        "showUpsell": false,
+        "capStatus": "NONE",
+        "impressionsRemaining": 0
+    },
+    "colors": {
+        "background": -14521857,
+        "text": -16777216,
+        "highlightText": -1
+    },
+    "hasVocalRemoval": false
+}
