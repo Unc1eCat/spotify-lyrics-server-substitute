@@ -12,6 +12,7 @@ from spotify_lyrics_server_substitute.lyrics_backends.lyrics_backend import Lyri
 from spotify_lyrics_server_substitute import spotify_api
 
 LYRICS_URL_PATTERN = re.compile(r"track\/([a-zA-Z0-9]+)\/image/(?:([a-zA-Z0-9_\/\?\=\&\:\.\-\#])\?)?")
+HOP_BY_HOP_HEADERS = [i.lower() for i in ('Keep-Alive', 'Transfer-Encoding', 'TE', 'Connection', 'Trailer', 'Upgrade', 'Proxy-Authorization', 'Proxy-Authenticate')]
 
 ParsedRequest = namedtuple('ParsedRequest', 'track_id image_url')
 
@@ -40,20 +41,19 @@ class LyricsRequestHandler(BaseHTTPRequestHandler):
             with urlopen(req) as res:
                 self.send_response(res.code)
                 for k, v in dict(res.headers).items():
-                    self.send_header(k, v)
-                # self.send_header('Content-Length', len(r := res.read()))
+                    if k.lower() not in HOP_BY_HOP_HEADERS:
+                        self.send_header(k, v)
+                r = res.read()
+                if 'content-length' not in res.headers:
+                    self.send_header('Content-Length', len(r))
                 self.end_headers()
-                # content_length = int(res.headers.get('Content-Length', 0))
-                # print(gzip.decompress(res.read()))
-                # self.write(r)
-                self.wfile.write(res.read(content_length) if content_length else res.read())
+                self.wfile.write(r)
         except HTTPError as e:
             self.send_error(e.getcode(), e.reason)
 
     def extract_from_request(self):
         ''' Returns only the information we need from the request or None if the request should be forwarded to the real Spotify servers. '''
         try:
-            return None
             match = LYRICS_URL_PATTERN.search(self.path)
             return ParsedRequest(match[1], match[2])
         except (IndexError, TypeError):
