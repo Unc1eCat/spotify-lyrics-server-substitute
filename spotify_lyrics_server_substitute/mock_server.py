@@ -1,5 +1,6 @@
 from collections import namedtuple
 import gzip
+from http import HTTPStatus
 import json
 import re
 from http.server import BaseHTTPRequestHandler
@@ -10,39 +11,39 @@ from urllib.request import Request, urlopen
 
 from spotify_lyrics_server_substitute.lyrics_backends.lyrics_backend import LyricsBackendBase
 from spotify_lyrics_server_substitute import spotify_api
+from src.spotify_api import parse_lyrics_request_url
 
-LYRICS_URL_PATTERN = re.compile(r"track\/([a-zA-Z0-9]+)\/image/(?:([a-zA-Z0-9_\/\?\=\&\:\.\-\#])\?)?")
 HOP_BY_HOP_HEADERS = [i.lower() for i in ('Keep-Alive', 'Transfer-Encoding', 'TE', 'Connection', 'Trailer', 'Upgrade', 'Proxy-Authorization', 'Proxy-Authenticate')]
-
-ParsedRequest = namedtuple('ParsedRequest', 'track_id image_url')
 
 
 class LyricsRequestHandler(BaseHTTPRequestHandler):
-    backends: list[LyricsBackendBase]
+    backend: LyricsBackendBase
 
     @staticmethod
-    def as_class(backends: Iterable[LyricsBackendBase]):
+    def as_class(backend: LyricsBackendBase):
         return type('LyricsRequestHandlerSub', (LyricsRequestHandler,), {
-            'backends': backends
+            'backend': backend
         })
 
     def assert_factory_used(self):
         ''' Checks that the client does not directly use `LyricsRequestHandler` class and instead has called `as_class` static factory. '''
         assert self.__class__.__name__ == 'LyricsRequestHandlerSub', "You can't use `LyricsRequestHandler class directly, please use `LyricsRequestHandler.as_class` static factory."
 
-    # TODO: Make a strategy for this method. Turns out forwarding HTTP requests is not as easy as I thought
     def forward_to_real_server(self):
         ''' Sends the received request to real Spotify servers and sends the response they give back to the client app. '''
-        # TODO: Rewrite it. Make it use TLS sockets and send contents of `self.rfile` through them to the real servers
-        url = 'https://%s' % (self.headers['host'] + self.path,)
+        # TODO: Those CONNECT request and keep-alives are blowin my mind up
+        url = 'https://%s' % ((self.headers['host'] if self.path.startswith('/') else '') + self.path,)
         content_length = int(self.headers.get('Content-Length', 0))
-        req = Request(url, data=self.rfile.read(content_length), headers=dict(self.headers), method=self.command.upper())
+        headers = {k.lower(): v for k, v in self.headers.items()}
+        headers['connection'] = 'close'
+        req = Request(url, data=self.rfile.read(content_length), headers=headers, method=self.command.upper())
         try:
             with urlopen(req) as res:
                 self.send_response(res.code)
                 for k, v in dict(res.headers).items():
                     if k.lower() not in HOP_BY_HOP_HEADERS:
                         self.send_header(k, v)
+                self.send_header('Connection', 'close')
                 r = res.read()
                 if 'content-length' not in res.headers:
                     self.send_header('Content-Length', len(r))
@@ -51,31 +52,42 @@ class LyricsRequestHandler(BaseHTTPRequestHandler):
         except HTTPError as e:
             self.send_error(e.getcode(), e.reason)
 
-    def extract_from_request(self):
-        ''' Returns only the information we need from the request or None if the request should be forwarded to the real Spotify servers. '''
-        try:
-            match = LYRICS_URL_PATTERN.search(self.path)
-            return ParsedRequest(match[1], match[2])
-        except (IndexError, TypeError):
-            return None
-
-    def do_GET(self):
+    def handle_one_request(self) -> None:
         self.assert_factory_used()
+        try:  # Copied straight out of superclass's `handle_one_request`
+            self.raw_requestline = self.rfile.readline(65537)
+            if len(self.raw_requestline) > 65536:
+                self.requestline = ''
+                self.request_version = ''
+                self.command = ''
+                self.send_error(HTTPStatus.REQUEST_URI_TOO_LONG)
+                return
+            if not self.raw_requestline:
+                self.close_connection = True
+                return
+            if not self.parse_request():
+                # An error code has been sent, just exit
+                return
 
-        req = self.extract_from_request()
-        if not req:
-            self.forward_to_real_server()
+            self.req = parse_lyrics_request_url(self.path)
+            if self.req:
+                self.do()
+            else:
+                self.forward_to_real_server()
+                return
+            self.wfile.flush()  # actually send the response if not already done.
+        except TimeoutError as e:
+            # a read or a write timed out.  Discard this connection
+            self.log_error("Request timed out: %r", e)
+            self.close_connection = True
             return
 
-        for i in self.backends:
-            if lyrics := i.get_lyrics(req.track_id):
-                break
-        else:  # None of the backends found lyrics
-            ...
-            return
-        # A backend found lyrics
-
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps(spotify_api.make_response_body(lyrics, 'en', False, 0, -1, -1)).encode('latin-1'))
+    def do(self):
+        lyrics = self.backend.get_lyrics(self.req.track_id)
+        if lyrics:
+            self.send_response(HTTPStatus.OK)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(lyrics.to_json()).encode('latin-1'))
+        else:
+            self.send_error(HTTPStatus.NOT_FOUND, 'No lyrics were found.')

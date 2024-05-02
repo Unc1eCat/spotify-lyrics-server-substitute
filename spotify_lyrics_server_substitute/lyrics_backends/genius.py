@@ -1,6 +1,6 @@
 import re
 from src.lyrics_backends.lyrics_backend import LyricsBackendBase
-from spotify_lyrics_server_substitute.spotify_api import LyricsLine, NameArtists, SpotifyAPI
+from spotify_lyrics_server_substitute.spotify_api import LyricsLine, LyricsResponse, NameArtists, SpotifyWebAPI
 from functools import partial
 from itertools import chain, combinations, product
 from urllib.error import HTTPError
@@ -23,14 +23,13 @@ used only for punctuation imposed by the human language.
 
 
 class GeniusLyricsBackend(LyricsBackendBase):
-    def __init__(self, genius_client_token: str, spotify: SpotifyAPI, *, number_take_matches=10) -> None:
+    def __init__(self, genius_client_token: str, spotify: SpotifyWebAPI, *, number_take_matches=10, remove_non_sang: bool = False) -> None:
         super().__init__()
 
-        # self.app_client_id = app_client_id
-        # self.app_client_secret = app_client_secret
         self.number_take_matches = number_take_matches
         self.spotify = spotify
         self.genius_client_token = genius_client_token
+        self.remove_non_sang = remove_non_sang
 
     def search_song(self, query: str):
         ''' Returns API call result in JSON '''
@@ -66,17 +65,18 @@ class GeniusLyricsBackend(LyricsBackendBase):
 
             return '\n'.join(i.get_text() for i in divs).strip(' \n')
 
-    def get_lyrics(self, spotify_track_id: str, remove_non_sang_text=False):
-        ''' Returns lyrics from Genius for track with Spotify ID `spotify_track_id`. If `remove_non_sang_text` is true, removes genius thingies in square 
+    def get_lyrics(self, spotify_track_id: str):
+        ''' Returns lyrics from Genius for track with Spotify ID `spotify_track_id`. If `remove_non_sang` attribute is true, removes genius thingies in square 
          brackets. '''
         name_artists = self.spotify.get_name_artists_by_id(spotify_track_id)
         hits = self.search_song(name_artists.name + ' - ' + ', '.join(name_artists.artists))['response']['hits']
         genius_track_url = self.pick_best_hit(hits, name_artists)['result']['url']
 
         lyrics = self.scrape_lyrics_from_page(genius_track_url).strip(' \n')
-        if remove_non_sang_text:  # TODO: Improve the lyrics processing algorithm
+        if self.remove_non_sang:  # TODO: Improve the lyrics processing algorithm
             lyrics = NON_SANG_PATTERN.sub('', lyrics)
             lyrics = '\n'.join(i for i in lyrics.split('\n') if i)  # Remove excessive newlines
-        return [LyricsLine(i, 0) for i in lyrics.split('\n')]
+        # TODO: Make it fill LyricsResponse parameters from the actual genius response
+        return LyricsResponse([LyricsLine(i, 0) for i in lyrics.split('\n')], 'en', False, 0, -1, -1)
 
 # TODO: REMOVE TEST API CLIENTS. THEY HAVE SECRET KEYS EXPOSED ON GITHUB
