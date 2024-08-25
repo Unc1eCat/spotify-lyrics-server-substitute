@@ -65,7 +65,7 @@ class GeniusLyricsBackend(LyricsBackendBase):
 
             return '\n'.join(i.get_text() for i in divs).strip(' \n')
 
-    def get_lyrics(self, spotify_track_id: str):
+    def get_lyrics(self, spotify_track_id: str) -> LyricsResponse:
         ''' Returns lyrics from Genius for track with Spotify ID `spotify_track_id`. If `remove_non_sang` attribute is true, removes genius thingies in square 
          brackets. '''
         name_artists = self.spotify.get_name_artists_by_id(spotify_track_id)

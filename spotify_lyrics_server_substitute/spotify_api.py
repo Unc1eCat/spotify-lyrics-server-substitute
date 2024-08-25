@@ -12,6 +12,8 @@ import base64
 SPOTIFY_URL_TOKEN = 'https://accounts.spotify.com/api/token'
 SPOTIFY_URL_GET_TRACK = 'https://api.spotify.com/v1/tracks/%s'
 
+LYRICS_REQUEST_HOSTNAME = 'spclient.wg.spotify.com'
+LYRICS_REQUEST_PATH_START = 'color-lyrics/v2/track'
 LYRICS_URL_PATTERN = re.compile(r"track\/([a-zA-Z0-9]+)\/image/(?:([a-zA-Z0-9_\/\?\=\&\:\.\-\#])\?)?")
 
 Color = int | tuple[4]
@@ -28,7 +30,7 @@ NameArtists = namedtuple('NameArtists', 'name artists')
 ParsedRequest = namedtuple('ParsedRequest', 'track_id image_url')
 
 
-def parse_lyrics_request_url(url, method = None):
+def parse_lyrics_request_url(url, method=None):
     ''' Returns only the information we need from the request or None if the request should be forwarded to the real Spotify servers. If you provide `method`
      parameter then checks if it is an HTTP method that we should handle. '''
     if method not in ('GET', None):

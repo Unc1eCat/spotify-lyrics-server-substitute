@@ -1,0 +1,5 @@
+beautifulsoup4==4.12.3
+bs4==0.0.2
+editdistance==0.8.1
+proxy.py==2.4.7
+soupsieve==2.5
