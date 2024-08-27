@@ -107,6 +107,7 @@ class SpotifyWebAPI:
     def get_track_by_id(self, track_id: str):
         req = Request(SPOTIFY_URL_GET_TRACK % (track_id,))
         req.add_header('Authorization', 'Bearer ' + self.access_token)
+        print(self.access_token)
         res = urlopen(req)
         return json.loads(res.read())
 

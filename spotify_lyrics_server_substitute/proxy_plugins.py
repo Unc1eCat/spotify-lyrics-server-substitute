@@ -28,6 +28,7 @@ class ServerPlugin(HttpWebServerBasePlugin):
         return self.available_routes
 
     def handle_request(self, request: HttpParser) -> None:
+        print('SLAAAAAAAAAAAAAAAAY')
         p = spotify_api.parse_lyrics_request_url(request.path)
         for i in self.backends:
             res = i.get_lyrics(123).to_json(p.track_id)
