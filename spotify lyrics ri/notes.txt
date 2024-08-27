@@ -14,3 +14,9 @@ The color in the response JSON is an aRGB value encoded as a 4 bytes signed inte
 convert each of them to bytes of length 1 and then concatenate them into a 4 byte value in order alpha, red, green, blue. The resulting 4 byte value is 
 converted to the signed integer (big endian).    
 СТС, ВУ всех лицевая и оборотная, паспорт прописка и главная. 
+
+--- quick response to CONNECT HTTP request ---
+HTTP/1.1 200 Connection Established
+Connection: keep-alive
+
+--- end ---

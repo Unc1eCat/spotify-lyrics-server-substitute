@@ -161,4 +161,5 @@ cython_debug/
 
 # Developer specific
 /src
-/dev.py 
+/dev.py
+/dev.sh
